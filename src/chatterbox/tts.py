@@ -3,7 +3,6 @@ from pathlib import Path
 
 import librosa
 import torch
-import perth
 import torch.nn.functional as F
 from huggingface_hub import hf_hub_download
 from safetensors.torch import load_file
@@ -125,7 +124,6 @@ class ChatterboxTTS:
         self.tokenizer = tokenizer
         self.device = device
         self.conds = conds
-        self.watermarker = perth.PerthImplicitWatermarker()
 
     @classmethod
     def from_local(cls, ckpt_dir, device) -> 'ChatterboxTTS':
@@ -322,8 +320,7 @@ class ChatterboxTTS:
             output_tensors = []
             for i, wav in enumerate(wavs):
                 trimmed_wav = wav[:audio_lengths[i]].cpu().numpy()
-                watermarked_wav = self.watermarker.apply_watermark(trimmed_wav, sample_rate=self.sr)
-                output_tensors.append(torch.from_numpy(watermarked_wav).unsqueeze(0))
+                output_tensors.append(torch.from_numpy(trimmed_wav).unsqueeze(0))
 
         if num_return_sequences > 1:
             # Group the flat list of outputs into a list of lists
